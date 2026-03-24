@@ -14,7 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      interactions: {
+        Row: {
+          ai_generated: boolean
+          channel: string
+          created_at: string
+          direction: string
+          id: string
+          lead_id: string
+          note_text: string
+          user_id: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          channel?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          lead_id: string
+          note_text?: string
+          user_id: string
+        }
+        Update: {
+          ai_generated?: boolean
+          channel?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          lead_id?: string
+          note_text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          city: string
+          created_at: string
+          estimated_value: number | null
+          id: string
+          last_interaction_at: string | null
+          lost_reason: string | null
+          measurement: string | null
+          name: string
+          next_followup_at: string | null
+          phone: string
+          priority_level: string
+          product_category: string
+          source: string
+          state: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          estimated_value?: number | null
+          id?: string
+          last_interaction_at?: string | null
+          lost_reason?: string | null
+          measurement?: string | null
+          name: string
+          next_followup_at?: string | null
+          phone?: string
+          priority_level?: string
+          product_category?: string
+          source?: string
+          state?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          estimated_value?: number | null
+          id?: string
+          last_interaction_at?: string | null
+          lost_reason?: string | null
+          measurement?: string | null
+          name?: string
+          next_followup_at?: string | null
+          phone?: string
+          priority_level?: string
+          product_category?: string
+          source?: string
+          state?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          id: string
+          name?: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
