@@ -66,6 +66,7 @@ export type Database = {
           measurement: string | null
           name: string
           next_followup_at: string | null
+          orcamento: string
           phone: string
           priority_level: string
           product_category: string
@@ -73,6 +74,7 @@ export type Database = {
           state: string
           status: string
           updated_at: string
+          urgencia: string
           user_id: string
         }
         Insert: {
@@ -85,6 +87,7 @@ export type Database = {
           measurement?: string | null
           name: string
           next_followup_at?: string | null
+          orcamento?: string
           phone?: string
           priority_level?: string
           product_category?: string
@@ -92,6 +95,7 @@ export type Database = {
           state?: string
           status?: string
           updated_at?: string
+          urgencia?: string
           user_id: string
         }
         Update: {
@@ -104,6 +108,7 @@ export type Database = {
           measurement?: string | null
           name?: string
           next_followup_at?: string | null
+          orcamento?: string
           phone?: string
           priority_level?: string
           product_category?: string
@@ -111,6 +116,7 @@ export type Database = {
           state?: string
           status?: string
           updated_at?: string
+          urgencia?: string
           user_id?: string
         }
         Relationships: []
