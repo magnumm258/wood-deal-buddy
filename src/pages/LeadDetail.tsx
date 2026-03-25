@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { PRODUCT_CATEGORIES, LEAD_STATUSES, BUDGET_OPTIONS, URGENCY_OPTIONS, INTERACTION_CHANNELS, INTERACTION_DIRECTIONS, getPriorityClass, getAlertLevel } from '@/lib/constants';
-import { ArrowLeft, MessageCircle, Sparkles, Copy, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Sparkles, Copy, AlertCircle, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -121,7 +121,9 @@ export default function LeadDetail() {
       {lead.phone && (
         <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="block">
           <Button size="lg" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-base h-14 gap-3 text-lg font-semibold">
-            <MessageCircle className="h-6 w-6" />Chamar no WhatsApp
+            <Phone className="h-6 w-6" />
+            <MessageCircle className="h-5 w-5" />
+            Chamar no WhatsApp
           </Button>
         </a>
       )}
@@ -131,17 +133,17 @@ export default function LeadDetail() {
         <div className="space-y-4">
           <div className="bg-card rounded-xl border p-4 sm:p-5 space-y-3">
             <h2 className="font-semibold">Dados do Lead</h2>
-            <Input defaultValue={lead.name} onBlur={e => e.target.value !== lead.name && handleUpdate({ name: e.target.value })} placeholder="Nome" className="h-12" />
-            <Input defaultValue={lead.phone} onBlur={e => handleUpdate({ phone: e.target.value })} placeholder="WhatsApp" className="h-12" />
+            <Input defaultValue={lead.name} onBlur={e => e.target.value !== lead.name && handleUpdate({ name: e.target.value })} placeholder="Nome" className="h-12 hover:bg-muted/50 transition-colors" />
+            <Input defaultValue={lead.phone} onBlur={e => handleUpdate({ phone: e.target.value })} placeholder="WhatsApp" className="h-12 hover:bg-muted/50 transition-colors" />
             <div className="grid grid-cols-2 gap-3">
-              <Input defaultValue={lead.city} onBlur={e => handleUpdate({ city: e.target.value })} placeholder="Cidade" className="h-12" />
-              <Input defaultValue={lead.state} maxLength={2} onBlur={e => handleUpdate({ state: e.target.value.toUpperCase() })} placeholder="UF" className="h-12" />
+              <Input defaultValue={lead.city} onBlur={e => handleUpdate({ city: e.target.value })} placeholder="Cidade" className="h-12 hover:bg-muted/50 transition-colors" />
+              <Input defaultValue={lead.state} maxLength={2} onBlur={e => handleUpdate({ state: e.target.value.toUpperCase() })} placeholder="UF" className="h-12 hover:bg-muted/50 transition-colors" />
             </div>
             <Select defaultValue={lead.product_category} onValueChange={v => handleUpdate({ product_category: v })}>
               <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
               <SelectContent>{PRODUCT_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
-            <Input defaultValue={lead.measurement || ''} onBlur={e => handleUpdate({ measurement: e.target.value })} placeholder="Medidas" className="h-12" />
+            <Input type="text" defaultValue={lead.measurement || ''} onBlur={e => handleUpdate({ measurement: e.target.value })} placeholder="Medidas" className="h-12 hover:bg-muted/50 transition-colors" />
             <Select defaultValue={(lead as any).orcamento || '_none'} onValueChange={v => handleUpdate({ orcamento: v === '_none' ? '' : v })}>
               <SelectTrigger className="h-12"><SelectValue placeholder="Orçamento estimado" /></SelectTrigger>
               <SelectContent>

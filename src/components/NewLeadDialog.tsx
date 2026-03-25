@@ -45,16 +45,16 @@ export default function NewLeadDialog() {
         <DialogHeader>
           <DialogTitle className="text-xl">Novo Lead</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Contact - Required */}
-          <div className="space-y-1">
+          <div className="space-y-3">
             <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contato</Label>
-            <Input placeholder="Nome *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className="h-12 text-base" />
-            <Input placeholder="WhatsApp *" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required className="h-12 text-base" />
+            <Input type="text" placeholder="Nome *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className="h-12 text-base" />
+            <Input type="text" placeholder="WhatsApp *" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required className="h-12 text-base" />
           </div>
 
           {/* Pre-qualification */}
-          <div className="space-y-1">
+          <div className="space-y-3">
             <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pré-qualificação</Label>
             <Select value={form.product_category} onValueChange={v => setForm(f => ({ ...f, product_category: v }))}>
               <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Produto de interesse" /></SelectTrigger>
@@ -62,8 +62,8 @@ export default function NewLeadDialog() {
                 {PRODUCT_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Input placeholder="Medidas" value={form.measurement} onChange={e => setForm(f => ({ ...f, measurement: e.target.value }))} className="h-12 text-base" />
-            <Input placeholder="Cidade" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className="h-12 text-base" />
+            <Input type="text" placeholder="Medidas" value={form.measurement} onChange={e => setForm(f => ({ ...f, measurement: e.target.value }))} className="h-12 text-base" autoComplete="off" />
+            <Input type="text" placeholder="Cidade" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className="h-12 text-base" />
             <Select value={form.orcamento || '_none'} onValueChange={v => setForm(f => ({ ...f, orcamento: v === '_none' ? '' : v }))}>
               <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Qual seu orçamento estimado?" /></SelectTrigger>
               <SelectContent>

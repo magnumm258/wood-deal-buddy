@@ -84,7 +84,7 @@ export default function Kanban() {
       />
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="kanban-scroll flex gap-3">
           {LEAD_STATUSES.map(status => {
             const columnLeads = filtered.filter(l => l.status === status);
             return (

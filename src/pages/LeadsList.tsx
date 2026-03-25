@@ -48,7 +48,7 @@ export default function LeadsList() {
       />
 
       <div className="bg-card rounded-xl border overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm sm:text-base">
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="text-left p-3 font-medium">Nome</th>
