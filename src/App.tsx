@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Kanban from "@/pages/Kanban";
 import LeadsList from "@/pages/LeadsList";
 import LeadDetail from "@/pages/LeadDetail";
+import FollowUpAgenda from "@/pages/FollowUpAgenda";
 import NotFound from "@/pages/NotFound";
 import { ReactNode } from "react";
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/kanban" element={<ProtectedRoute><Kanban /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><LeadsList /></ProtectedRoute>} />
             <Route path="/lead/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
+            <Route path="/followup" element={<ProtectedRoute><FollowUpAgenda /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
