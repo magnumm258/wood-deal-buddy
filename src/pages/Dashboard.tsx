@@ -3,11 +3,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, getAlertLevel } from '@/lib/constants';
 import NewLeadDialog from '@/components/NewLeadDialog';
 import { Users, FileText, TrendingUp, AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { data: leads = [] } = useLeads();
+  const navigate = useNavigate();
 
   const today = new Date().toDateString();
   const leadsToday = leads.filter(l => new Date(l.created_at).toDateString() === today).length;
@@ -67,7 +68,7 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {leads.slice(0, 8).map(l => (
-                <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => window.location.href = `/lead/${l.id}`}>
+                <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/lead/${l.id}`)}>
                   <td className="p-3">
                     <span className="font-medium">{l.name}</span>
                   </td>
