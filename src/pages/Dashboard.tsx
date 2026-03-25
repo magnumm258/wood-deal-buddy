@@ -67,9 +67,9 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {leads.slice(0, 8).map(l => (
-                <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => window.location.href = `/lead/${l.id}`}>
                   <td className="p-3">
-                    <Link to={`/lead/${l.id}`} className="font-medium hover:text-primary transition-colors">{l.name}</Link>
+                    <span className="font-medium">{l.name}</span>
                   </td>
                   <td className="p-3 text-muted-foreground hidden sm:table-cell">{l.product_category}</td>
                   <td className="p-3 text-muted-foreground hidden md:table-cell">{l.city}</td>

@@ -41,8 +41,8 @@ export default function LeadFilters({
   };
 
   return (
-    <div className="flex flex-wrap gap-2 items-center">
-      <div className="relative flex-1 min-w-[180px]">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 items-center">
+      <div className="relative sm:col-span-2 lg:flex-1 lg:min-w-[180px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input placeholder="Buscar..." className="pl-9 h-10" value={search} onChange={e => onSearchChange(e.target.value)} />
       </div>
