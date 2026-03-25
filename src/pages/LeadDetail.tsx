@@ -11,6 +11,8 @@ import { PRODUCT_CATEGORIES, LEAD_STATUSES, BUDGET_OPTIONS, URGENCY_OPTIONS, INT
 import { ArrowLeft, MessageCircle, Sparkles, Copy, AlertCircle, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import TemperatureBadge from '@/components/TemperatureBadge';
+import WhatsAppActions from '@/components/WhatsAppActions';
 
 export default function LeadDetail() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +35,7 @@ export default function LeadDetail() {
   const phoneClean = lead.phone.replace(/\D/g, '');
   const vendorName = user?.user_metadata?.name || 'Vendedor';
   const whatsappMessage = encodeURIComponent(
-    `Olá, sou ${vendorName}. Quero falar sobre seu orçamento de ${lead.product_category}. Medidas: ${lead.measurement || 'não informado'}. Cidade: ${lead.city || 'não informada'}. Orçamento: ${(lead as any).orcamento || 'não informado'}. Prazo: ${(lead as any).urgencia || 'não informado'}.`
+    `Olá, sou ${vendorName}. Quero falar sobre seu orçamento de ${lead.product_category}. Medidas: ${lead.measurement || 'não informado'}. Cidade: ${lead.city || 'não informada'}. Orçamento: ${lead.orcamento || 'não informado'}. Prazo: ${lead.urgencia || 'não informado'}.`
   );
   const whatsappLink = `https://wa.me/55${phoneClean}?text=${whatsappMessage}`;
 
@@ -72,8 +74,8 @@ export default function LeadDetail() {
             estimated_value: lead.estimated_value, status: lead.status,
             city: lead.city, measurement: lead.measurement,
             lost_reason: lead.lost_reason,
-            orcamento: (lead as any).orcamento,
-            urgencia: (lead as any).urgencia,
+            orcamento: lead.orcamento,
+            urgencia: lead.urgencia,
           },
           interactions: interactions.slice(0, 5).map(i => ({ note_text: i.note_text, channel: i.channel, created_at: i.created_at })),
         },
@@ -110,9 +112,10 @@ export default function LeadDetail() {
             )}
           </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <TemperatureBadge lead={lead} showScore size="md" />
             <Badge variant="outline" className={getPriorityClass(lead.priority_level)}>{lead.priority_level}</Badge>
             <span className="text-sm text-muted-foreground">{lead.product_category}</span>
-            {(lead as any).urgencia && <Badge variant="secondary" className="text-xs">{(lead as any).urgencia}</Badge>}
+            {lead.urgencia && <Badge variant="secondary" className="text-xs">{lead.urgencia}</Badge>}
           </div>
         </div>
       </div>
@@ -144,14 +147,14 @@ export default function LeadDetail() {
               <SelectContent>{PRODUCT_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
             <Input type="text" defaultValue={lead.measurement || ''} onBlur={e => handleUpdate({ measurement: e.target.value })} placeholder="Medidas" className="h-12 hover:bg-muted/50 transition-colors" />
-            <Select defaultValue={(lead as any).orcamento || '_none'} onValueChange={v => handleUpdate({ orcamento: v === '_none' ? '' : v })}>
+            <Select defaultValue={lead.orcamento || '_none'} onValueChange={v => handleUpdate({ orcamento: v === '_none' ? '' : v })}>
               <SelectTrigger className="h-12"><SelectValue placeholder="Orçamento estimado" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="_none">Selecione o orçamento</SelectItem>
                 {BUDGET_OPTIONS.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select defaultValue={(lead as any).urgencia || '_none'} onValueChange={v => handleUpdate({ urgencia: v === '_none' ? '' : v })}>
+            <Select defaultValue={lead.urgencia || '_none'} onValueChange={v => handleUpdate({ urgencia: v === '_none' ? '' : v })}>
               <SelectTrigger className="h-12"><SelectValue placeholder="Urgência" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="_none">Selecione a urgência</SelectItem>
@@ -166,6 +169,9 @@ export default function LeadDetail() {
               <Input defaultValue={lead.lost_reason || ''} onBlur={e => handleUpdate({ lost_reason: e.target.value })} placeholder="Motivo da perda" className="h-12" />
             )}
           </div>
+
+          {/* WhatsApp Templates */}
+          <WhatsAppActions lead={lead} vendorName={vendorName} />
 
           {/* AI Panel */}
           <div className="bg-card rounded-xl border p-4 sm:p-5 space-y-3">
@@ -217,10 +223,10 @@ export default function LeadDetail() {
           </div>
 
           <div className="bg-card rounded-xl border p-4 sm:p-5">
-            <h2 className="font-semibold mb-3">Histórico</h2>
+            <h2 className="font-semibold mb-3">📜 Timeline / Histórico</h2>
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {interactions.map(i => (
-                <div key={i.id} className="border-l-2 border-border pl-3 py-1">
+                <div key={i.id} className={`border-l-2 pl-3 py-1 ${i.ai_generated ? 'border-accent' : 'border-border'}`}>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <span className="font-medium">{i.channel}</span>
                     <span>•</span>

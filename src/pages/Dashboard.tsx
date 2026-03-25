@@ -2,6 +2,8 @@ import { useLeads } from '@/hooks/useLeads';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, getAlertLevel } from '@/lib/constants';
 import NewLeadDialog from '@/components/NewLeadDialog';
+import CommercialAlerts from '@/components/CommercialAlerts';
+import TemperatureBadge from '@/components/TemperatureBadge';
 import { Users, FileText, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -18,13 +20,13 @@ export default function Dashboard() {
   const salesThisMonth = leads
     .filter(l => l.status === 'Fechado ganho' && new Date(l.updated_at) >= monthStart)
     .reduce((sum, l) => sum + (l.estimated_value ?? 0), 0);
-  const overdueLeads = leads.filter(l => getAlertLevel(l.status, l.last_interaction_at) !== 'none').length;
+  const overdueLeads = leads.filter(l => l.next_followup_at && new Date(l.next_followup_at) < now && !['Fechado ganho', 'Perdido'].includes(l.status)).length;
 
   const metrics = [
     { label: 'Leads Hoje', value: leadsToday, icon: Users, color: 'text-primary' },
     { label: 'Orçamentos Ativos', value: activeQuotes, icon: FileText, color: 'text-accent' },
-    { label: 'Vendas no Mês', value: formatCurrency(salesThisMonth), icon: TrendingUp, color: 'text-success' },
-    { label: 'Atrasados', value: overdueLeads, icon: AlertTriangle, color: 'text-destructive' },
+    { label: 'Vendas no Mês', value: formatCurrency(salesThisMonth), icon: TrendingUp, color: 'text-primary' },
+    { label: 'Follow-ups Pendentes', value: overdueLeads, icon: AlertTriangle, color: 'text-destructive', link: '/followup' },
   ];
 
   const firstName = user?.user_metadata?.name?.split(' ')[0] || 'Vendedor';
@@ -41,7 +43,11 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {metrics.map(m => (
-          <div key={m.label} className="metric-card">
+          <div
+            key={m.label}
+            className={`metric-card ${(m as any).link ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+            onClick={() => (m as any).link && navigate((m as any).link)}
+          >
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs sm:text-sm text-muted-foreground font-medium">{m.label}</span>
               <m.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${m.color}`} />
@@ -51,9 +57,15 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Commercial Alerts */}
+      <CommercialAlerts leads={leads} />
+
       {/* Recent leads */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">Leads Recentes</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Leads Recentes</h2>
+          <Link to="/followup" className="text-sm text-primary hover:underline">Ver agenda →</Link>
+        </div>
         <div className="bg-card rounded-xl border overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -61,8 +73,7 @@ export default function Dashboard() {
                 <th className="text-left p-3 font-medium">Nome</th>
                 <th className="text-left p-3 font-medium hidden sm:table-cell">Produto</th>
                 <th className="text-left p-3 font-medium hidden md:table-cell">Cidade</th>
-                <th className="text-left p-3 font-medium hidden lg:table-cell">Orçamento</th>
-                <th className="text-left p-3 font-medium hidden lg:table-cell">Urgência</th>
+                <th className="text-left p-3 font-medium hidden lg:table-cell">Temp.</th>
                 <th className="text-left p-3 font-medium">Status</th>
               </tr>
             </thead>
@@ -74,8 +85,7 @@ export default function Dashboard() {
                   </td>
                   <td className="p-3 text-muted-foreground hidden sm:table-cell">{l.product_category}</td>
                   <td className="p-3 text-muted-foreground hidden md:table-cell">{l.city}</td>
-                  <td className="p-3 text-muted-foreground hidden lg:table-cell">{(l as any).orcamento || '—'}</td>
-                  <td className="p-3 text-muted-foreground hidden lg:table-cell">{(l as any).urgencia || '—'}</td>
+                  <td className="p-3 hidden lg:table-cell"><TemperatureBadge lead={l} /></td>
                   <td className="p-3">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-secondary">
                       {l.status}
@@ -84,7 +94,7 @@ export default function Dashboard() {
                 </tr>
               ))}
               {leads.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Nenhum lead ainda. Clique em "Novo Lead" para começar!</td></tr>
+                <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhum lead ainda. Clique em "Novo Lead" para começar!</td></tr>
               )}
             </tbody>
           </table>

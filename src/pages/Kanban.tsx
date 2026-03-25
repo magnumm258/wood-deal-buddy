@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useLeads, useUpdateLead } from '@/hooks/useLeads';
-import { LEAD_STATUSES, getAlertLevel, getPriorityClass, formatCurrency, BUDGET_OPTIONS, URGENCY_OPTIONS } from '@/lib/constants';
+import { LEAD_STATUSES, getAlertLevel, getPriorityClass } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
+import TemperatureBadge from '@/components/TemperatureBadge';
 import LostReasonDialog from '@/components/LostReasonDialog';
 import NewLeadDialog from '@/components/NewLeadDialog';
 import LeadFilters from '@/components/LeadFilters';
@@ -39,8 +40,8 @@ export default function Kanban() {
     return leads.filter(l => {
       if (search && !l.name.toLowerCase().includes(search.toLowerCase()) && !l.city.toLowerCase().includes(search.toLowerCase())) return false;
       if (statusFilter !== 'all' && l.status !== statusFilter) return false;
-      if (budgetFilter !== 'all' && (l as any).orcamento !== budgetFilter) return false;
-      if (urgencyFilter !== 'all' && (l as any).urgencia !== urgencyFilter) return false;
+      if (budgetFilter !== 'all' && l.orcamento !== budgetFilter) return false;
+      if (urgencyFilter !== 'all' && l.urgencia !== urgencyFilter) return false;
       if (cityFilter !== 'all' && l.city !== cityFilter) return false;
       if (productFilter !== 'all' && l.product_category !== productFilter) return false;
       return true;
@@ -113,16 +114,14 @@ export default function Kanban() {
                                     )}
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">{lead.product_category}</p>
-                                  {(lead as any).orcamento && (
-                                    <p className="text-xs text-muted-foreground">{(lead as any).orcamento}</p>
+                                  {lead.orcamento && (
+                                    <p className="text-xs text-muted-foreground">{lead.orcamento}</p>
                                   )}
-                                  <div className="flex items-center justify-between mt-2">
+                                  <div className="flex items-center justify-between mt-2 gap-1">
+                                    <TemperatureBadge lead={lead} />
                                     <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${getPriorityClass(lead.priority_level)}`}>
                                       {lead.priority_level}
                                     </Badge>
-                                    {(lead as any).urgencia && (
-                                      <span className="text-[10px] text-muted-foreground">{(lead as any).urgencia}</span>
-                                    )}
                                   </div>
                                 </div>
                               </Link>

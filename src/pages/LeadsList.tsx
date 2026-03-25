@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useLeads } from '@/hooks/useLeads';
 import { getAlertLevel } from '@/lib/constants';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { buildWhatsAppUrl } from '@/lib/whatsappTemplates';
+import TemperatureBadge from '@/components/TemperatureBadge';
 import NewLeadDialog from '@/components/NewLeadDialog';
 import LeadFilters from '@/components/LeadFilters';
 
@@ -23,8 +25,8 @@ export default function LeadsList() {
     return leads.filter(l => {
       if (search && !l.name.toLowerCase().includes(search.toLowerCase()) && !l.city.toLowerCase().includes(search.toLowerCase())) return false;
       if (statusFilter !== 'all' && l.status !== statusFilter) return false;
-      if (budgetFilter !== 'all' && (l as any).orcamento !== budgetFilter) return false;
-      if (urgencyFilter !== 'all' && (l as any).urgencia !== urgencyFilter) return false;
+      if (budgetFilter !== 'all' && l.orcamento !== budgetFilter) return false;
+      if (urgencyFilter !== 'all' && l.urgencia !== urgencyFilter) return false;
       if (cityFilter !== 'all' && l.city !== cityFilter) return false;
       if (productFilter !== 'all' && l.product_category !== productFilter) return false;
       return true;
@@ -54,10 +56,10 @@ export default function LeadsList() {
               <th className="text-left p-3 font-medium">Nome</th>
               <th className="text-left p-3 font-medium hidden sm:table-cell">Produto</th>
               <th className="text-left p-3 font-medium hidden md:table-cell">Cidade</th>
-              <th className="text-left p-3 font-medium hidden lg:table-cell">Orçamento</th>
+              <th className="text-left p-3 font-medium hidden lg:table-cell">Temp.</th>
               <th className="text-left p-3 font-medium hidden lg:table-cell">Urgência</th>
-              <th className="text-left p-3 font-medium">Data</th>
-              <th className="text-center p-3 font-medium w-10"></th>
+              <th className="text-left p-3 font-medium">Status</th>
+              <th className="text-center p-3 font-medium w-20">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -71,14 +73,24 @@ export default function LeadsList() {
                   </td>
                   <td className="p-3 text-muted-foreground hidden sm:table-cell">{l.product_category}</td>
                   <td className="p-3 text-muted-foreground hidden md:table-cell">{l.city}</td>
-                  <td className="p-3 text-muted-foreground hidden lg:table-cell">{(l as any).orcamento || '—'}</td>
-                  <td className="p-3 text-muted-foreground hidden lg:table-cell">{(l as any).urgencia || '—'}</td>
-                  <td className="p-3 text-muted-foreground text-xs">{new Date(l.created_at).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-3 hidden lg:table-cell"><TemperatureBadge lead={l} /></td>
+                  <td className="p-3 text-muted-foreground hidden lg:table-cell">{l.urgencia || '—'}</td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-secondary">{l.status}</span>
+                      {alert !== 'none' && (
+                        <AlertCircle className={`h-4 w-4 ${
+                          alert === 'red' ? 'text-destructive' : alert === 'orange' ? 'text-orange-500' : 'text-amber-500'
+                        }`} />
+                      )}
+                    </div>
+                  </td>
                   <td className="p-3 text-center">
-                    {alert !== 'none' && (
-                      <AlertCircle className={`h-4 w-4 inline ${
-                        alert === 'red' ? 'text-destructive' : alert === 'orange' ? 'text-orange-500' : 'text-amber-500'
-                      }`} />
+                    {l.phone && (
+                      <a href={buildWhatsAppUrl(l.phone, `Olá ${l.name}!`)} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors text-emerald-600">
+                        <MessageCircle className="h-4 w-4" />
+                      </a>
                     )}
                   </td>
                 </tr>

@@ -1,13 +1,14 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, Columns3, List, LogOut, TreePine, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Columns3, List, LogOut, TreePine, Menu, X, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/kanban', label: 'Funil', icon: Columns3 },
   { to: '/leads', label: 'Leads', icon: List },
+  { to: '/followup', label: 'Follow-up', icon: CalendarClock },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
