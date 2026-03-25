@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { PRODUCT_CATEGORIES, LEAD_SOURCES, LEAD_STATUSES, INTERACTION_CHANNELS, INTERACTION_DIRECTIONS, getPriorityClass, formatCurrency, getAlertLevel } from '@/lib/constants';
-import { ArrowLeft, MessageCircle, Phone, Sparkles, Copy, AlertCircle } from 'lucide-react';
+import { PRODUCT_CATEGORIES, LEAD_STATUSES, BUDGET_OPTIONS, URGENCY_OPTIONS, INTERACTION_CHANNELS, INTERACTION_DIRECTIONS, getPriorityClass, getAlertLevel } from '@/lib/constants';
+import { ArrowLeft, MessageCircle, Sparkles, Copy, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,7 +30,12 @@ export default function LeadDetail() {
   if (isLoading || !lead) return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
 
   const alert = getAlertLevel(lead.status, lead.last_interaction_at);
-  const whatsappLink = `https://wa.me/55${lead.phone.replace(/\D/g, '')}`;
+  const phoneClean = lead.phone.replace(/\D/g, '');
+  const vendorName = user?.user_metadata?.name || 'Vendedor';
+  const whatsappMessage = encodeURIComponent(
+    `Olá, sou ${vendorName}. Quero falar sobre seu orçamento de ${lead.product_category}. Medidas: ${lead.measurement || 'não informado'}. Cidade: ${lead.city || 'não informada'}. Orçamento: ${(lead as any).orcamento || 'não informado'}. Prazo: ${(lead as any).urgencia || 'não informado'}.`
+  );
+  const whatsappLink = `https://wa.me/55${phoneClean}?text=${whatsappMessage}`;
 
   const handleUpdate = (updates: Record<string, unknown>) => {
     updateLead.mutate({ id: lead.id, ...updates } as any, {
@@ -67,6 +72,8 @@ export default function LeadDetail() {
             estimated_value: lead.estimated_value, status: lead.status,
             city: lead.city, measurement: lead.measurement,
             lost_reason: lead.lost_reason,
+            orcamento: (lead as any).orcamento,
+            urgencia: (lead as any).urgencia,
           },
           interactions: interactions.slice(0, 5).map(i => ({ note_text: i.note_text, channel: i.channel, created_at: i.created_at })),
         },
@@ -91,66 +98,75 @@ export default function LeadDetail() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex items-center gap-3">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex items-start gap-3 flex-wrap">
         <Link to="/leads"><Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button></Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{lead.name}</h1>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">{lead.name}</h1>
             {alert !== 'none' && (
-              <AlertCircle className={`h-5 w-5 ${alert === 'red' ? 'text-destructive' : alert === 'orange' ? 'text-orange-500' : 'text-amber-500'}`} />
+              <AlertCircle className={`h-5 w-5 shrink-0 ${alert === 'red' ? 'text-destructive' : alert === 'orange' ? 'text-orange-500' : 'text-amber-500'}`} />
             )}
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <Badge variant="outline" className={getPriorityClass(lead.priority_level)}>{lead.priority_level}</Badge>
-            <span className="text-sm text-muted-foreground">{lead.product_category} • {formatCurrency(lead.estimated_value)}</span>
+            <span className="text-sm text-muted-foreground">{lead.product_category}</span>
+            {(lead as any).urgencia && <Badge variant="secondary" className="text-xs">{(lead as any).urgencia}</Badge>}
           </div>
         </div>
-        {lead.phone && (
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-            <Button className="bg-emerald-600 hover:bg-emerald-700">
-              <MessageCircle className="h-4 w-4 mr-2" />Abrir WhatsApp
-            </Button>
-          </a>
-        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* WhatsApp CTA */}
+      {lead.phone && (
+        <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="block">
+          <Button size="lg" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-base h-14 gap-3 text-lg font-semibold">
+            <MessageCircle className="h-6 w-6" />Chamar no WhatsApp
+          </Button>
+        </a>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left: Lead form */}
         <div className="space-y-4">
-          <div className="bg-card rounded-xl border p-5 space-y-3">
+          <div className="bg-card rounded-xl border p-4 sm:p-5 space-y-3">
             <h2 className="font-semibold">Dados do Lead</h2>
-            <Input defaultValue={lead.name} onBlur={e => e.target.value !== lead.name && handleUpdate({ name: e.target.value })} placeholder="Nome" />
+            <Input defaultValue={lead.name} onBlur={e => e.target.value !== lead.name && handleUpdate({ name: e.target.value })} placeholder="Nome" className="h-12" />
+            <Input defaultValue={lead.phone} onBlur={e => handleUpdate({ phone: e.target.value })} placeholder="WhatsApp" className="h-12" />
             <div className="grid grid-cols-2 gap-3">
-              <Input defaultValue={lead.phone} onBlur={e => handleUpdate({ phone: e.target.value })} placeholder="Telefone" />
-              <Input defaultValue={lead.city} onBlur={e => handleUpdate({ city: e.target.value })} placeholder="Cidade" />
+              <Input defaultValue={lead.city} onBlur={e => handleUpdate({ city: e.target.value })} placeholder="Cidade" className="h-12" />
+              <Input defaultValue={lead.state} maxLength={2} onBlur={e => handleUpdate({ state: e.target.value.toUpperCase() })} placeholder="UF" className="h-12" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Input defaultValue={lead.state} maxLength={2} onBlur={e => handleUpdate({ state: e.target.value.toUpperCase() })} placeholder="UF" />
-              <Input defaultValue={lead.measurement || ''} onBlur={e => handleUpdate({ measurement: e.target.value })} placeholder="Medidas" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Select defaultValue={lead.product_category} onValueChange={v => handleUpdate({ product_category: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{PRODUCT_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select defaultValue={lead.source} onValueChange={v => handleUpdate({ source: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LEAD_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <Input type="number" defaultValue={lead.estimated_value ?? 0} onBlur={e => handleUpdate({ estimated_value: Number(e.target.value) })} placeholder="Valor estimado" />
+            <Select defaultValue={lead.product_category} onValueChange={v => handleUpdate({ product_category: v })}>
+              <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+              <SelectContent>{PRODUCT_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            </Select>
+            <Input defaultValue={lead.measurement || ''} onBlur={e => handleUpdate({ measurement: e.target.value })} placeholder="Medidas" className="h-12" />
+            <Select defaultValue={(lead as any).orcamento || '_none'} onValueChange={v => handleUpdate({ orcamento: v === '_none' ? '' : v })}>
+              <SelectTrigger className="h-12"><SelectValue placeholder="Orçamento estimado" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">Selecione o orçamento</SelectItem>
+                {BUDGET_OPTIONS.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select defaultValue={(lead as any).urgencia || '_none'} onValueChange={v => handleUpdate({ urgencia: v === '_none' ? '' : v })}>
+              <SelectTrigger className="h-12"><SelectValue placeholder="Urgência" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">Selecione a urgência</SelectItem>
+                {URGENCY_OPTIONS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+              </SelectContent>
+            </Select>
             <Select defaultValue={lead.status} onValueChange={v => handleUpdate({ status: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
               <SelectContent>{LEAD_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
             </Select>
-            {lead.status === 'Fechado Perdido' && (
-              <Input defaultValue={lead.lost_reason || ''} onBlur={e => handleUpdate({ lost_reason: e.target.value })} placeholder="Motivo da perda" />
+            {lead.status === 'Perdido' && (
+              <Input defaultValue={lead.lost_reason || ''} onBlur={e => handleUpdate({ lost_reason: e.target.value })} placeholder="Motivo da perda" className="h-12" />
             )}
           </div>
 
           {/* AI Panel */}
-          <div className="bg-card rounded-xl border p-5 space-y-3">
+          <div className="bg-card rounded-xl border p-4 sm:p-5 space-y-3">
             <h2 className="font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-accent" />Assistente IA</h2>
             <div className="flex flex-wrap gap-2">
               {[
@@ -182,7 +198,7 @@ export default function LeadDetail() {
 
         {/* Right: Timeline */}
         <div className="space-y-4">
-          <div className="bg-card rounded-xl border p-5 space-y-3">
+          <div className="bg-card rounded-xl border p-4 sm:p-5 space-y-3">
             <h2 className="font-semibold">Nova Anotação</h2>
             <div className="flex gap-2">
               <Select value={noteChannel} onValueChange={setNoteChannel}>
@@ -195,15 +211,15 @@ export default function LeadDetail() {
               </Select>
             </div>
             <Textarea placeholder="Escreva uma anotação..." value={note} onChange={e => setNote(e.target.value)} rows={3} />
-            <Button onClick={handleAddNote} disabled={!note.trim() || createInteraction.isPending} className="w-full">Salvar Anotação</Button>
+            <Button onClick={handleAddNote} disabled={!note.trim() || createInteraction.isPending} className="w-full h-12 text-base">Salvar Anotação</Button>
           </div>
 
-          <div className="bg-card rounded-xl border p-5">
+          <div className="bg-card rounded-xl border p-4 sm:p-5">
             <h2 className="font-semibold mb-3">Histórico</h2>
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {interactions.map(i => (
                 <div key={i.id} className="border-l-2 border-border pl-3 py-1">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <span className="font-medium">{i.channel}</span>
                     <span>•</span>
                     <span>{i.direction}</span>

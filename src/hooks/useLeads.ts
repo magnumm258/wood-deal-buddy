@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { calculatePriority, getNextFollowup } from '@/lib/constants';
+import { calculatePriority, calculatePriorityFromBudget, getNextFollowup } from '@/lib/constants';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 export type Lead = Tables<'leads'>;
@@ -40,12 +40,15 @@ export function useCreateLead() {
   return useMutation({
     mutationFn: async (lead: Omit<TablesInsert<'leads'>, 'user_id'>) => {
       const value = lead.estimated_value ?? 0;
-      const priority = calculatePriority(value);
-      const followup = getNextFollowup(lead.status ?? 'Contato Iniciado');
+      const budget = (lead as any).orcamento || '';
+      const priority = budget ? calculatePriorityFromBudget(budget) : calculatePriority(value);
+      const status = lead.status ?? 'Novo lead';
+      const followup = getNextFollowup(status);
       const { data, error } = await supabase.from('leads').insert({
         ...lead,
         user_id: user!.id,
         priority_level: priority,
+        status,
         next_followup_at: followup.toISOString(),
       }).select().single();
       if (error) throw error;
@@ -62,6 +65,9 @@ export function useUpdateLead() {
       const patch: Record<string, unknown> = { ...updates };
       if (updates.estimated_value != null) {
         patch.priority_level = calculatePriority(updates.estimated_value);
+      }
+      if ((updates as any).orcamento) {
+        patch.priority_level = calculatePriorityFromBudget((updates as any).orcamento);
       }
       if (updates.status) {
         patch.next_followup_at = getNextFollowup(updates.status).toISOString();
@@ -103,7 +109,6 @@ export function useCreateInteraction() {
         user_id: user!.id,
       }).select().single();
       if (error) throw error;
-      // Update lead's last_interaction_at
       await supabase.from('leads').update({ last_interaction_at: new Date().toISOString() }).eq('id', interaction.lead_id);
       return data;
     },

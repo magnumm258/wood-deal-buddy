@@ -1,66 +1,62 @@
 import { useState, useMemo } from 'react';
 import { useLeads } from '@/hooks/useLeads';
-import { formatCurrency, getPriorityClass, getAlertLevel, LEAD_STATUSES, PRIORITY_LEVELS } from '@/lib/constants';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Search } from 'lucide-react';
+import { getAlertLevel } from '@/lib/constants';
+import { AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NewLeadDialog from '@/components/NewLeadDialog';
+import LeadFilters from '@/components/LeadFilters';
 
 export default function LeadsList() {
   const { data: leads = [] } = useLeads();
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [budgetFilter, setBudgetFilter] = useState('all');
+  const [urgencyFilter, setUrgencyFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('all');
+  const [productFilter, setProductFilter] = useState('all');
+
+  const cities = useMemo(() => [...new Set(leads.map(l => l.city).filter(Boolean))].sort(), [leads]);
+  const products = useMemo(() => [...new Set(leads.map(l => l.product_category).filter(Boolean))].sort(), [leads]);
 
   const filtered = useMemo(() => {
     return leads.filter(l => {
-      const matchSearch = !search || l.name.toLowerCase().includes(search.toLowerCase()) || l.city.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = statusFilter === 'all' || l.status === statusFilter;
-      const matchPriority = priorityFilter === 'all' || l.priority_level === priorityFilter;
-      return matchSearch && matchStatus && matchPriority;
+      if (search && !l.name.toLowerCase().includes(search.toLowerCase()) && !l.city.toLowerCase().includes(search.toLowerCase())) return false;
+      if (statusFilter !== 'all' && l.status !== statusFilter) return false;
+      if (budgetFilter !== 'all' && (l as any).orcamento !== budgetFilter) return false;
+      if (urgencyFilter !== 'all' && (l as any).urgencia !== urgencyFilter) return false;
+      if (cityFilter !== 'all' && l.city !== cityFilter) return false;
+      if (productFilter !== 'all' && l.product_category !== productFilter) return false;
+      return true;
     });
-  }, [leads, search, statusFilter, priorityFilter]);
+  }, [leads, search, statusFilter, budgetFilter, urgencyFilter, cityFilter, productFilter]);
 
   return (
-    <div className="p-6 lg:p-8 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Leads</h1>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold">Leads</h1>
         <NewLeadDialog />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nome ou cidade..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos Status</SelectItem>
-            {LEAD_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            {PRIORITY_LEVELS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
+      <LeadFilters
+        search={search} onSearchChange={setSearch}
+        statusFilter={statusFilter} onStatusChange={setStatusFilter}
+        budgetFilter={budgetFilter} onBudgetChange={setBudgetFilter}
+        urgencyFilter={urgencyFilter} onUrgencyChange={setUrgencyFilter}
+        cityFilter={cityFilter} onCityChange={setCityFilter} cities={cities}
+        productFilter={productFilter} onProductChange={setProductFilter} products={products}
+      />
 
-      <div className="bg-card rounded-xl border overflow-hidden">
+      <div className="bg-card rounded-xl border overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="text-left p-3 font-medium">Nome</th>
+              <th className="text-left p-3 font-medium hidden sm:table-cell">Produto</th>
               <th className="text-left p-3 font-medium hidden md:table-cell">Cidade</th>
-              <th className="text-left p-3 font-medium">Categoria</th>
-              <th className="text-left p-3 font-medium">Status</th>
-              <th className="text-left p-3 font-medium">Prioridade</th>
-              <th className="text-right p-3 font-medium">Valor</th>
+              <th className="text-left p-3 font-medium hidden lg:table-cell">Orçamento</th>
+              <th className="text-left p-3 font-medium hidden lg:table-cell">Urgência</th>
+              <th className="text-left p-3 font-medium">Data</th>
               <th className="text-center p-3 font-medium w-10"></th>
             </tr>
           </thead>
@@ -71,14 +67,13 @@ export default function LeadsList() {
                 <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                   <td className="p-3">
                     <Link to={`/lead/${l.id}`} className="font-medium hover:text-primary transition-colors">{l.name}</Link>
+                    <p className="text-xs text-muted-foreground sm:hidden">{l.product_category}</p>
                   </td>
-                  <td className="p-3 text-muted-foreground hidden md:table-cell">{l.city}/{l.state}</td>
-                  <td className="p-3 text-muted-foreground">{l.product_category}</td>
-                  <td className="p-3"><span className="text-xs font-medium px-2 py-1 rounded-full bg-secondary">{l.status}</span></td>
-                  <td className="p-3">
-                    <Badge variant="outline" className={`text-xs ${getPriorityClass(l.priority_level)}`}>{l.priority_level}</Badge>
-                  </td>
-                  <td className="p-3 text-right font-medium">{formatCurrency(l.estimated_value)}</td>
+                  <td className="p-3 text-muted-foreground hidden sm:table-cell">{l.product_category}</td>
+                  <td className="p-3 text-muted-foreground hidden md:table-cell">{l.city}</td>
+                  <td className="p-3 text-muted-foreground hidden lg:table-cell">{(l as any).orcamento || '—'}</td>
+                  <td className="p-3 text-muted-foreground hidden lg:table-cell">{(l as any).urgencia || '—'}</td>
+                  <td className="p-3 text-muted-foreground text-xs">{new Date(l.created_at).toLocaleDateString('pt-BR')}</td>
                   <td className="p-3 text-center">
                     {alert !== 'none' && (
                       <AlertCircle className={`h-4 w-4 inline ${
