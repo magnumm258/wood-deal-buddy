@@ -65,7 +65,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
 export function fillTemplate(template: string, vars: Record<string, string>): string {
   let result = template;
   Object.entries(vars).forEach(([key, value]) => {
-    result = result.replaceAll(`{${key}}`, value || 'não informado');
+    result = result.split(`{${key}}`).join(value || 'não informado');
   });
   return result;
 }
